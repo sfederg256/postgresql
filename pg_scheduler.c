@@ -15,6 +15,9 @@
 #include "utils/snapmgr.h"
 #include "access/xact.h"
 #include "postmaster/bgworker.h"
+#include "commands/async.h"
+
+#define SCHEDULER_CHANNEL "scheduler_channel"
 
 PG_MODULE_MAGIC;
 
@@ -72,17 +75,25 @@ pg_scheduler_bgworker_main(Datum main_arg)
 
         if (need_wait)
         {
-            // Sleep for 30 seconds or until woken up
-            WaitLatch(&MyProc->procLatch,
-                      WL_LATCH_SET | WL_TIMEOUT | WL_POSTMASTER_DEATH,
-                      30 * 1000L,
-                      WL_LATCH_SET);
+            uint32 wait_result;
 
-            ResetLatch(&MyProc->procLatch);
+            /* Подписываемся на канал и ждём */
+            WaitLatch(MyLatch,
+                    WL_LATCH_SET | WL_TIMEOUT | WL_POSTMASTER_DEATH | WL_EXIT_ON_PM_DEATH,
+                    5000L,   // 5 секунд
+                    0);   
+
+            if (wait_result & WL_LATCH_SET)
+            {
+                ResetLatch(MyLatch);
+            }
+
+            AcceptInvalidationMessages();
         }
 
         if (ProcDiePending)
             proc_exit(1);
+        
     }
 
     proc_exit(0);
