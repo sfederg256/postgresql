@@ -1,0 +1,12 @@
+CREATE FUNCTION
+INSERT 0 1
+ pg_sleep 
+----------
+ 
+(1 row)
+
+ status  | last_run_at 
+---------+-------------
+ pending | 
+(1 row)
+
