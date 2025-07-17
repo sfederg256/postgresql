@@ -1,0 +1,7 @@
+#pg_scheduler extension
+comment = 'extension to define and run scheduled tasks'
+default_version = '1.0'
+module_pathname = '$libdir/pg_scheduler'
+relocatable = false
+trusted = false
+schema = scheduler
